@@ -1,4 +1,3 @@
-# Full Data Pre-processing
 # ==============================
 # ==============================
 
@@ -267,76 +266,61 @@ for (col in colnames(wisconsin_numeric)) {
   }
 }
 
+# -------------------------------
+#     Multiple Regression Plots
+# -------------------------------
+# Load required libraries
+library(mctest)
 
-# Multiple Linear Regression
-# ===========================
-# Predict Class using all available variables
-attach(wisconsin_numeric)
+# Ensure Class is numeric for regression
+wisconsin_numeric$Class <- as.numeric(wisconsin_numeric$Class)
 
-# Fit the Multiple Linear Regression model using all predictors
+# Fit the Multiple Linear Regression model with all predictors
 mrmodel <- lm(Class ~ Cl.thickness + Cell.size + Cell.shape + Marg.adhesion + 
                 Epith.c.size + Bare.nuclei + Bl.cromatin + Normal.nucleoli + Mitoses, 
               data = wisconsin_numeric)
 
-# View the summary of the multiple linear regression model
+# View model summary
 summary(mrmodel)
 
-# Perform diagnostics to check multicollinearity (optional)
-library(mctest)
+# Check for multicollinearity
 imcdiag(mrmodel)
 
-# Create a data frame for new predictions
-newdata <- data.frame(Cl.thickness = 5, 
-                      Cell.size = 2, 
-                      Cell.shape = 3, 
-                      Marg.adhesion = 1, 
-                      Epith.c.size = 4, 
-                      Bare.nuclei = 6, 
-                      Bl.cromatin = 2, 
-                      Normal.nucleoli = 1, 
-                      Mitoses = 3)
+# Create a new data frame with realistic values based on the median of the dataset
+newarea <- data.frame(
+  Cl.thickness = median(wisconsin_numeric$Cl.thickness, na.rm = TRUE),
+  Cell.size = median(wisconsin_numeric$Cell.size, na.rm = TRUE),
+  Cell.shape = median(wisconsin_numeric$Cell.shape, na.rm = TRUE),
+  Marg.adhesion = median(wisconsin_numeric$Marg.adhesion, na.rm = TRUE),
+  Epith.c.size = median(wisconsin_numeric$Epith.c.size, na.rm = TRUE),
+  Bare.nuclei = median(wisconsin_numeric$Bare.nuclei, na.rm = TRUE),
+  Bl.cromatin = median(wisconsin_numeric$Bl.cromatin, na.rm = TRUE),
+  Normal.nucleoli = median(wisconsin_numeric$Normal.nucleoli, na.rm = TRUE),
+  Mitoses = median(wisconsin_numeric$Mitoses, na.rm = TRUE)
+)
 
-# Predicting the outcome for new data with confidence intervals
-predict(mrmodel, newdata, interval = "confidence")
+# Predict using the new data with confidence intervals
+prediction <- predict(mrmodel, newarea, interval = "confidence")
 
-# Plotting the relationship between Cl.thickness and Class (one predictor for simplicity)
-plot(Cl.thickness, Class, main = "Scatterplot: Cl.thickness vs Class", 
-     xlab = "Cl.thickness", ylab = "Class", pch = 19)
-
-# Add regression line to the plot
-abline(lm(Class ~ Cl.thickness), col = "red")
-
-# Optional: Plot diagnostic plots for the multiple regression model
-par(mfrow = c(2, 2))  # Set up a 2x2 grid for diagnostic plots
-plot(mrmodel)
-
-# Check diagnostics (multicollinearity) for the model
-imcdiag(mrmodel)
+# Print the prediction with confidence intervals
+print(prediction)
 
 
-# Diagnostic Plot
-# =======================
-# Fit the multiple linear regression model
-fit_all <- lm(Class ~ Cl.thickness + Cell.size + Cell.shape + Marg.adhesion + 
-                Epith.c.size + Bare.nuclei + Bl.cromatin + Normal.nucleoli + Mitoses, 
-              data = wisconsin_numeric)
-
-# View the summary of the model
-summary(fit_all)
+# -------------------------------
+#     Diagnostic Plots
+# -------------------------------
 
 # Set up a 2x2 grid for diagnostic plots
 par(mfrow = c(2, 2))
 
-# Plot diagnostic plots for the regression model
-plot(fit_all)
+# Plot diagnostic plots for the multiple regression model
+plot(mrmodel)
 
-# Perform the diagnostic tests for multicollinearity
-library(mctest)
-imcdiag(fit_all)
+# Check diagnostics (multicollinearity)
+imcdiag(mrmodel)
 
 
-# Preparing Data
-# ===============
+
 
 # Load necessary libraries
 library(rpart)
@@ -348,7 +332,6 @@ library(ggplot2)
 library(graphics)
 library(cluster)
 
-# Load your dataset
 # Ensure 'Class' is a factor in your dataset
 wisconsin$Class <- as.factor(wisconsin$Class)
 
